@@ -23,14 +23,18 @@ A modern, real-time collaborative shopping list application built with Go and va
 
 ## 📸 Screenshots
 
-### Settings Panel
-![Login Screen](screenshots/mobile_login.png)
-
-### Main Interface
-![Main View](screenshots/mobile_main.png)
-
-### Shopping Mode
-![Shopping Mode](screenshots/mobile_shopmode.png)
+<table>
+  <tr>
+    <td><img src="screenshots/mobile_login.png" width="400" alt="Login Screen"></td>
+    <td><img src="screenshots/mobile_main.png" width="400" alt="Main View"></td>
+    <td><img src="screenshots/mobile_shopmode.png" width="400" alt="Shopping Mode View"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Login Screen</b></td>
+    <td align="center"><b>Main View</b></td>
+    <td align="center"><b>Shopping Mode View</b></td>
+  </tr>
+</table>
 
 ## 🚀 Quick Start
 
