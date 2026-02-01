@@ -21,6 +21,17 @@ A modern, real-time collaborative shopping list application built with Go and va
 - 🔄 **Auto-reconnect** - WebSocket automatically reconnects if connection drops
 - 🗂️ **Category Organization** - Collapsible category sections with item counts
 
+## 📸 Screenshots
+
+### Settings Panel
+![Login Screen](screenshots/mobile_login.png)
+
+### Main Interface
+![Main View](screenshots/mobile_main.png)
+
+### Shopping Mode
+![Shopping Mode](screenshots/mobile_shopmode.png)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
