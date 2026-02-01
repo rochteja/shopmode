@@ -605,7 +605,10 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Username already exists in organization", 409)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+	    "status": "ok",
+	})
 }
 
 func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
