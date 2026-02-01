@@ -837,9 +837,9 @@ button[data-confirm="true"] {
                     <h3>User Management</h3>
                     <div id="userList"></div>
                     <div class="add-form">
-                        <input type="text" id="newUsername" placeholder="Username">
-                        <input type="password" id="newPassword" placeholder="Password">
-                        <input type="password" id="newPasswordConfirm" placeholder="Confirm Password">
+                        <input type="text" id="createUserUsername" placeholder="Username">
+                        <input type="password" id="createUserPassword" placeholder="Password">
+                        <input type="password" id="createUserPasswordConfirm" placeholder="Confirm Password">
                         <select id="newRole">
                             <option value="User">User</option>
                             <option value="Admin">Admin</option>
@@ -1509,9 +1509,9 @@ function loadUsers() {
 }
 
 function createUser() {
-    const username = newUsername.value.trim();
-    const password = newPassword.value.trim();
-    const passwordConfirm = newPasswordConfirm.value.trim();
+    const username = createUserUsername.value.trim();
+    const password = createUserPassword.value.trim();
+    const passwordConfirm = createUserPasswordConfirm.value.trim();
     const role = newRole.value;
     const error = document.getElementById('createUserError');
     error.textContent = '';
