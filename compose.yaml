@@ -1,28 +1,28 @@
 services:
-  shopapp:
-    image: shopping:latest
+  shopmode:
+    image: shopmode:latest
     pull_policy: never
-    container_name: shopapp
+    container_name: shopmode
     user: "1001:1001"
     environment:
       - HTTPS=true
       - SESSION_KEY=your-random-secret-key-here-change-this
       - APP_TITLE=Shop Mode
-      - DEFAULT_ORGANIZATION=RockTea
+      - DEFAULT_ORGANIZATION=Default
       - DEFAULT_LIST=Shopping
-      - DEFAULT_ADMIN_USERNAME=Jake
-      - DEFAULT_ADMIN_PASSWORD=A17j11t2b1
+      - DEFAULT_ADMIN_USERNAME=admin
+      - DEFAULT_ADMIN_PASSWORD=admin
     ports:
-      - "3035:3000"
+      - "3035:8888"
     volumes:
-      - shop-data:/app/data
+      - shopmode-data:/app/data
     restart: unless-stopped
     networks:
       - userbridge
 
 networks:
-  userbridge:
+  userbridge: # Use with reverse proxy network
     external: true
 
 volumes:
-  shop-data:
+  shopmode-data:

@@ -33,7 +33,7 @@ A modern, real-time collaborative shopping list application built with Go and va
 1. **Create a directory for your app:**
 
 ```bash
-mkdir shopping-app && cd shopping-app
+mkdir shop-mode && cd shop-mode
 ```
 
 2. **Create an `.env` file with secure secrets:**
@@ -54,21 +54,21 @@ version: '3.8'
 
 services:
   shopping:
-    image: yourusername/shopping-app:latest
-    container_name: shopping
+    image: rochteja/shopmode:latest
+    container_name: shopmode
     user: "1001:1001"
     environment:
       - HTTPS=true
       - SESSION_KEY=${SESSION_KEY}
-      - DEFAULT_ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - APP_TITLE=${APP_TITLE:-Shop Mode}
+      - DEFAULT_ADMIN_USERNAME=admin
+      - DEFAULT_ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - DEFAULT_ORGANIZATION=${ORGANIZATION_NAME:-Default}
       - DEFAULT_LIST=Shopping
-      - DEFAULT_ADMIN_USERNAME=admin
     ports:
       - 8888:8888
     volumes:
-      - shopping-data:/app/data
+      - shopmode-date:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8888/"]
@@ -77,7 +77,7 @@ services:
       retries: 3
 
 volumes:
-  shopping-data:
+  shopmode-data:
     driver: local
 ```
 
@@ -103,14 +103,14 @@ cat .env | grep ADMIN_PASSWORD
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/shopping-app.git
-cd shopping-app
+git clone https://github.com/rochteja/shopmode.git
+cd shopmode
 
 # Install dependencies
 go mod download
 
 # Run the application
-HTTPS=false SESSION_KEY=dev-secret APP_TITLE="Shopping" go run main.go
+HTTPS=false SESSION_KEY=dev-secret APP_TITLE="Shopmode" go run main.go
 ```
 
 Access the app at `http://localhost:8888`
@@ -144,7 +144,7 @@ Access the app at `http://localhost:8888`
 #### Caddy (Recommended - Automatic HTTPS)
 
 ```caddy
-shop.example.com {
+shopmode.example.com {
     reverse_proxy localhost:8888
 }
 ```
@@ -154,7 +154,7 @@ shop.example.com {
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name shop.example.com;
+    server_name shopmode.example.com;
     
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
@@ -183,7 +183,7 @@ server {
 ```yaml
 labels:
   - "traefik.enable=true"
-  - "traefik.http.routers.shopping.rule=Host(`shop.example.com`)"
+  - "traefik.http.routers.shopping.rule=Host(`shopmode.example.com`)"
   - "traefik.http.routers.shopping.tls.certresolver=letsencrypt"
   - "traefik.http.services.shopping.loadbalancer.server.port=8888"
 ```
@@ -237,7 +237,7 @@ Toggle the lightning bolt (⚡) icon to keep your device screen on while shoppin
 | `HTTPS` | `true` | Set to `false` only for local development |
 | `SESSION_KEY` | *(required)* | Random secret for session encryption (32+ bytes) |
 | `DEFAULT_ADMIN_PASSWORD` | `admin` | Initial admin password - **change immediately** |
-| `APP_TITLE` | `Shopping App` | Application title shown in UI |
+| `APP_TITLE` | `Shop Mode` | Application title shown in UI |
 | `DEFAULT_ORGANIZATION` | `Default` | Name of the default organization |
 | `DEFAULT_LIST` | `Shopping` | Name of the default shopping list |
 | `DEFAULT_ADMIN_USERNAME` | `admin` | Initial admin username |
@@ -250,7 +250,7 @@ All data is stored in SQLite at `/app/data/shopping.db` inside the container.
 
 ```yaml
 volumes:
-  - shopping-data:/app/data
+  - shopmode-data:/app/data
 ```
 
 Or bind mount to a specific directory:
@@ -291,7 +291,7 @@ Add to your crontab:
 
 ```bash
 # Daily backup at 2 AM
-0 2 * * * docker cp shopping:/app/data/shopping.db /backups/shopping-$(date +\%Y\%m\%d).db
+0 2 * * * docker cp shopmode:/app/data/shopping.db /backups/shopping-$(date +\%Y\%m\%d).db
 ```
 
 ## 📱 Mobile Installation (PWA)
@@ -318,11 +318,11 @@ The app will now appear on your home screen like a native app!
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/shopping-app.git
-cd shopping-app
+git clone https://github.com/rochteja/shopmode.git
+cd shopmode
 
 # Build the image
-docker build -t shopping-app:latest .
+docker build -t shopmode:latest .
 
 # Run it
 docker run -d \
@@ -330,7 +330,7 @@ docker run -d \
   -e HTTPS=false \
   -e SESSION_KEY=$(openssl rand -hex 32) \
   -v $(pwd)/data:/app/data \
-  shopping-app:latest
+  shopmode:latest
 ```
 
 ### Development Build
@@ -343,10 +343,10 @@ go mod download
 go test ./...
 
 # Build binary
-CGO_ENABLED=1 go build -o shopping-app .
+CGO_ENABLED=1 go build -o shopmode .
 
 # Run
-HTTPS=false SESSION_KEY=dev-secret ./shopping-app
+HTTPS=false SESSION_KEY=dev-secret ./shopmode
 ```
 
 ## 🐛 Troubleshooting
@@ -359,7 +359,7 @@ HTTPS=false SESSION_KEY=dev-secret ./shopping-app
 - Ensure `SESSION_KEY` is set and consistent
 - Verify `HTTPS` setting matches your deployment (true for reverse proxy, false for direct HTTP)
 - Clear browser cookies and try again
-- Check container logs: `docker-compose logs shopping`
+- Check container logs: `docker-compose logs shopmode`
 
 ### Items Not Syncing
 
@@ -369,7 +369,7 @@ HTTPS=false SESSION_KEY=dev-secret ./shopping-app
 - Check browser console for WebSocket errors (F12 → Console)
 - Verify firewall allows WebSocket connections
 - Ensure all users are on the same list (check dropdown)
-- Restart the container: `docker-compose restart shopping`
+- Restart the container: `docker-compose restart shopmode`
 
 ### Database Locked Errors
 
