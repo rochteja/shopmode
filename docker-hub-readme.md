@@ -53,7 +53,7 @@ services:
       - DEFAULT_LIST=Shopping
       - DEFAULT_ADMIN_USERNAME=admin
     ports:
-      - "127.0.0.1:8888:8888"
+      - 8888:8888
     volumes:
       - shopmode-data:/app/data
     restart: unless-stopped
