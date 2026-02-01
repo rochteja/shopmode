@@ -475,8 +475,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", 400)
+		return
+	}
+
 	// Parse organization/username or plain username
-	username := r.Username
+	username := req.Username
 	var orgID int
 	
 	if strings.Contains(username, "/") {
@@ -506,7 +512,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(r.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		http.Error(w, "Invalid username or password", 401)
 		return
 	}
