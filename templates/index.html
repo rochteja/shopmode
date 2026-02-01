@@ -1545,9 +1545,9 @@ function createUser() {
         return r.json();
     })
     .then(() => {
-        newUsername.value = '';
-        newPassword.value = '';
-        newPasswordConfirm.value = '';
+        createUserUsername.value = '';
+        createUserPassword.value = '';
+        createUserPasswordConfirm.value = '';
         error.style.color = 'var(--accent)';
         error.textContent = 'User created successfully';
         setTimeout(() => {
