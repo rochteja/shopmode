@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#0e1117" />
+        <link rel="manifest" href="/static/manifest.json">
+        <title>{{.Title}}</title>
+    </head>
+<style>
+    :root {
+    --bg: #0e1117;
+    --panel: #161b22;
+    --panel-2: #1f2633;
+    --border: #2d3443;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #7aa2f7;
+    --danger: #f7768e;
+    --radius: 6px;
+    --radius-sm: 4px;
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* Login Screen */
+.login-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    font-family: 'Inter', sans-serif;
+}
+
+.login-card {
+    background: #1e293b;
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    width: 320px;
+    text-align: center;
+}
+
+.login-title {
+    color: #f8fafc;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.login-field input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #f8fafc;
+    font-size: 1rem;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.login-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3b82f6;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.login-btn:hover {
+    background: #2563eb;
+}
+
+.login-error {
+    color: #f87171;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    min-height: 1.2em;
+}
+
+.login-card {
+    transform: translateY(-20px);
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* App Layout */
+.app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+    display: none;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.header h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.header span {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.icon-btn {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.icon-btn:hover {
+    border-color: var(--accent);
+}
+
+.icon-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 4px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    width: 36px;
+    height: 18px;
+    background-color: #ccc;
+    border-radius: 34px;
+    position: relative;
+    transition: 0.3s;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.switch input:checked + .slider {
+    background-color: var(--accent);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(18px);
+}
+
+/* Icon inside switch */
+.switch .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 12px;
+}
+
+/* Panels */
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+/* User Info Cards */
+.user-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-info-card {
+    padding: 10px;
+    background: var(--panel-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.user-info-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.user-info-value {
+    font-weight: 600;
+}
+
+/* Settings Panel */
+.settings-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+}
+
+.settings-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.settings-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.settings-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    margin-bottom: 8px;
+}
+
+.settings-item input,
+.settings-item select {
+    flex: 1;
+}
+
+.settings-item button {
+    flex-shrink: 0;
+}
+
+.add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.add-form input,
+.add-form select {
+    flex: 1;
+    min-width: 120px;
+}
+
+.add-form button {
+    flex-shrink: 0;
+}
+
+/* Form */
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+input, select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+input::placeholder {
+    color: var(--muted);
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.add-row {
+    display: flex;
+    gap: 8px;
+}
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.qty-control input {
+    width: 50px;
+    text-align: center;
+}
+
+.qty-control button {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    padding: 0;
+}
+
+button {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:hover {
+    border-color: var(--accent);
+}
+
+button.primary {
+    background: var(--accent);
+    color: #0e1117;
+    border: none;
+    font-weight: 600;
+}
+
+button[data-confirm="true"] {
+    color: var(--danger);
+}
+
+/* List Header */
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.list-header h2 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+#listSelector {
+    max-width: 200px;
+}
+
+/* Wake Toggle */
+.wake-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.wake-toggle input {
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Category Accordion */
+.category-section {
+    margin-bottom: 12px;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.category-header:hover {
+    background: #252c3a;
+}
+
+.category-header.collapsed {
+    border-radius: var(--radius-sm);
+}
+
+.category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.category-arrow {
+    transition: transform 0.2s;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.category-header.collapsed .category-arrow {
+    transform: rotate(-90deg);
+}
+
+.category-count {
+    font-size: 12px;
+    color: var(--muted);
+    background: #252c3a;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.category-items {
+    margin-top: 6px;
+    display: none;
+}
+
+.category-items.expanded {
+    display: block;
+}
+
+/* Items */
+.item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    margin-bottom: 6px;
+}
+
+.item.purchased {
+    opacity: 0.5;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+}
+
+.item-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.item-meta {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.item-quantity {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 30px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #252c3a;
+    margin-right: 6px;
+    font-size: 11px;
+}
+
+/* Shopping Mode */
+.shopping-mode-panel {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ccc;
+}
+
+.shopping-mode-items .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  font-size: 1.4em;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.shopping-mode-items .item > div {
+  text-align: center;
+  flex: 1;
+}
+
+.shopping-mode-items .item .item-name {
+  font-size: 1.4em;
+}
+
+.shopping-mode-items .item .badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--muted);
+  background-color: var(--panel-2);
+  margin-top: 4px;
+}
+
+.shopping-mode-items .item button {
+  padding: 10px 20px; /* larger buttons */
+  font-size: 1.1em;
+}
+
+/* Delete */
+.delete {
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete:hover {
+    opacity: 0.7;
+}
+
+.delete svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Empty */
+.empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 24px;
+    font-size: 14px;
+}
+
+/* Connection Status */
+.connection-status {
+    color: var(--muted);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.connection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    display: none;
+}
+
+/* Danger Zone */
+.danger-section {
+    border-top: 2px solid var(--danger);
+}
+
+.danger-section h3 {
+    color: var(--danger);
+}
+
+.danger-warning {
+    padding: 12px;
+    background: rgba(247, 118, 142, 0.1);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--danger);
+    margin-bottom: 12px;
+}
+
+.danger-warning p {
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.danger-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    width: 100%;
+    font-weight: 600;
+}
+
+.danger-btn:hover {
+    background: #e05770;
+    border: none;
+}
+
+.danger-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .add-form {
+        flex-direction: column;
+    }
+    
+    .add-form input,
+    .add-form select,
+    .add-form button {
+        width: 100%;
+    }
+}
+</style>
+    <body>
+        <svg style="display: none;">
+            <symbol id="icon-trash" viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </symbol>
+        </svg>
+
+        <div id="loginScreen" class="login-screen">
+            <div class="login-card">
+                <h1 class="login-title">{{.Title}}</h1>
+                <div class="login-field">
+                    <input type="text" id="loginUsername" placeholder="Organization/Username" />
+                </div>
+                <div class="login-field">
+                    <input type="password" id="loginPassword" placeholder="Password" />
+                </div>
+                <div id="loginError" class="login-error"></div>
+                <button class="login-btn" onclick="login()">Login</button>
+                <button class="login-btn" style="background:#334155;margin-top:8px;" onclick="showSignup()">Create Account</button>
+            </div>
+        </div>
+
+        <div id="signupScreen" class="login-screen" style="display:none;">
+            <div class="login-card">
+                <h1 class="login-title">Create Account</h1>
+                <div class="login-field">
+                    <input type="text" id="signupOrgName" placeholder="Organization Name" />
+                </div>
+                <div class="login-field">
+                    <input type="text" id="signupUsername" placeholder="Username" />
+                </div>
+                <div class="login-field">
+                    <input type="password" id="signupPassword" placeholder="Password" />
+                </div>
+                <div class="login-field">
+                    <input type="password" id="signupPasswordConfirm" placeholder="Confirm Password" />
+                </div>
+                <div id="signupError" class="login-error"></div>
+                <button class="login-btn" onclick="signup()">Sign Up</button>
+                <button class="login-btn" style="background:#334155;margin-top:8px;" onclick="showLogin()">Back to Login</button>
+            </div>
+        </div>
+
+        <div id="appScreen" class="app">
+            <div class="header">
+                <h1>{{.Title}}</h1>
+                <div style="display:flex; gap:10px; align-items:center;">
+
+                    <span id="connectionCount" class="connection-status" title="Clients Connected">
+                        <span id="connectionDot" class="connection-dot"></span>
+                        <span id="connectionText"></span>
+                    </span>
+                    <select id="listSelector" onchange="switchList()"></select>
+                    <button id="settingsBtn" onclick="toggleSettings()" class="icon-btn" title="Settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+
+                    <!-- Shopping Mode toggle -->
+                    <label class="switch" title="Shopping Mode">
+                        <input type="checkbox" id="shoppingModeToggle">
+                        <span class="slider"></span>
+                        <span class="icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                        </span>
+                    </label>
+
+                    <!-- Wake Lock toggle -->
+                    <label class="switch" title="Keep Screen Awake">
+                        <input type="checkbox" id="wakeToggle">
+                        <span class="slider"></span>
+                        <span class="icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </span>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="settings-panel" id="settingsPanel" style="display:none;">
+                <div class="settings-header">
+                    <h2>Settings</h2>
+                </div>
+
+                <div class="settings-section">
+                    <h3>User</h3>
+                    <div class="user-info-container">
+                        <div class="user-info-card">
+                            <div class="user-info-label">Organization</div>
+                            <div id="loggedin-organization" class="user-info-value"></div>
+                        </div>
+                        <div class="user-info-card">
+                            <div class="user-info-label">Username</div>
+                            <div id="loggedin-username" class="user-info-value"></div>
+                        </div>
+                        <button class="primary" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Change Password</h3>
+                    <div class="add-form">
+                        <input type="password" id="currentPassword" placeholder="Current Password" />
+                        <input type="password" id="newPasswordChange" placeholder="New Password" />
+                        <input type="password" id="newPasswordConfirm" placeholder="Confirm New Password" />
+                        <button class="primary" onclick="changePassword()">Update Password</button>
+                    </div>
+                    <div id="passwordChangeError" style="color:var(--danger);font-size:0.85rem;margin-top:8px;"></div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Categories</h3>
+                    <div id="categories"></div>
+                    <div class="add-form">
+                        <input id="newCategory" placeholder="New category name" />
+                        <button class="primary" onclick="addCategory()">Add Category</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Lists</h3>
+                    <div id="listManagement"></div>
+                    <div class="add-form">
+                        <input id="newListName" placeholder="New list name" />
+                        <button class="primary" onclick="createList()">Add List</button>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="usersSection">
+                    <h3>User Management</h3>
+                    <div id="userList"></div>
+                    <div class="add-form">
+                        <input type="text" id="newUsername" placeholder="Username">
+                        <input type="password" id="newPassword" placeholder="Password">
+                        <input type="password" id="newPasswordConfirm" placeholder="Confirm Password">
+                        <select id="newRole">
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <button class="primary" onclick="createUser()">Add User</button>
+                    </div>
+                    <div id="createUserError" style="color:var(--danger);font-size:0.85rem;margin-top:8px;"></div>
+                </div>
+
+                <div class="settings-section danger-section" id="dangerSection">
+                    <h3>⚠️ Danger Zone</h3>
+                    <div class="danger-warning">
+                        <p>
+                            This will permanently delete your organization and ALL data including:
+                            users, lists, items, and categories. This action cannot be undone.
+                        </p>
+                        <button 
+                            id="deleteOrgBtn"
+                            class="danger-btn"
+                            data-step="0"
+                            onclick="confirmDeleteOrganization(this)">
+                            Delete Organization
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Item Panel -->
+            <div class="panel">
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <input id="itemName" placeholder="Item name" style="flex:1;" autofocus />
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <button id="qtyMinus" type="button" onclick="decrementQuantity()">−</button>
+                        <input id="itemQuantity" value="1" style="width:50px; text-align:center;" />
+                        <button id="qtyPlus" type="button" onclick="incrementQuantity()">+</button>
+                    </div>
+                </div>
+                <div id="categoryButtons" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:8px;"></div>
+            </div>
+
+            <!-- Items List -->
+            <div class="panel">
+                <div class="list-header">
+                    <h2>ITEMS</h2>
+                    <button
+                        id="clearPurchasedBtn"
+                        data-confirm="false"
+                        onclick="confirmClearPurchased(this)">
+                        Clear purchased
+                    </button>
+                </div>
+                <div id="itemsList"></div>
+            </div>
+
+            <!-- Shopping Mode -->
+            <div id="shoppingModeItems" class="shopping-mode-items" style="display: none;">
+              <!-- Items will be rendered here in shopping mode -->
+            </div>
+
+        </div>
+<script>
+let userName = '';
+let allItems = [];
+let currentListID = parseInt(localStorage.getItem('currentListID')) || 1;
+
+// Check if already logged in on page load
+function checkSession() {
+    fetch('/api/me', { credentials: 'include' })
+        .then(r => {
+            if (r.ok) return r.json();
+            throw new Error('Not logged in');
+        })
+        .then(user => {
+            userName = user.username;
+            // Update user info in settings
+            document.getElementById('loggedin-organization').textContent = user.org_name || `Org ID: ${user.org_id}`;
+            document.getElementById('loggedin-username').textContent = user.username;
+            showApp();
+            initApp();
+        })
+        .catch(() => {
+            showLogin();
+        });
+}
+
+async function initApp() {
+    const listId = await loadLists();
+
+    if (!listId || listId <= 0) {
+        console.warn('No valid list, skipping WebSocket');
+        return;
+    }
+
+    connectWebSocket();
+}
+
+
+function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('signupScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'none';
+}
+
+function showSignup() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('signupScreen').style.display = 'flex';
+    document.getElementById('appScreen').style.display = 'none';
+}
+
+function signup() {
+    const orgName = document.getElementById('signupOrgName').value;
+    const username = document.getElementById('signupUsername').value;
+    const password = document.getElementById('signupPassword').value;
+    const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+    const error = document.getElementById('signupError');
+    error.textContent = '';
+
+    if (!orgName || !username || !password || !passwordConfirm) {
+        error.textContent = 'All fields are required';
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        error.textContent = 'Passwords do not match';
+        return;
+    }
+
+    if (password.length < 6) {
+        error.textContent = 'Password must be at least 6 characters';
+        return;
+    }
+
+    fetch('/api/signup', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({org_name: orgName, username, password})
+    })
+    .then(r => {
+        if (!r.ok) {
+            return r.text().then(text => {
+                throw new Error(text);
+            });
+        }
+        return r.json();
+    })
+    .then(() => {
+        // Auto-login after signup
+        document.getElementById('loginUsername').value = username;
+        document.getElementById('loginPassword').value = password;
+        login();
+    })
+    .catch(err => {
+        error.textContent = err.message;
+    });
+}
+
+function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('signupScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    
+    // Reset currentListID when switching users/orgs
+    currentListID = 0; // Will be set by loadLists
+    
+    checkAdmin();
+    loadLists().then(() => {
+        loadCategories();
+        loadItems();
+    });
+}
+
+function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const error = document.getElementById('loginError');
+    error.textContent = '';
+
+    fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({username, password})
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Invalid username or password');
+        return r.json();
+    })
+    .then(data => {
+        userName = data.username;
+        fetch('/api/me', { credentials: 'include' })
+        .then(r => r.json())
+        .then(user => {
+            document.getElementById('loggedin-organization').textContent = user.org_name || `Org ID: ${user.org_id}`;
+            document.getElementById('loggedin-username').textContent = user.username;
+        });
+        showApp();
+    })
+    .catch(err => {
+        error.textContent = err.message;
+    });
+
+    
+}
+
+function logout() {
+    fetch('/api/logout', { method: 'POST', credentials: 'include' })
+        .then(() => {
+            userName = '';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            if (ws) ws.close();
+            showLogin();
+        })
+        .catch(err => console.error('Logout failed', err));
+}
+
+// === ITEMS ===
+function loadItems() {
+    fetch(`/api/items?list_id=${currentListID}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(items => {
+            const el = document.getElementById('itemsList');
+            if (!items || items.length === 0) {
+                el.innerHTML = `<div class="empty">No items</div>`;
+                return;
+            }
+
+            // Group items by category
+            const grouped = {};
+            items.forEach(item => {
+                if (!grouped[item.category]) {
+                    grouped[item.category] = [];
+                }
+                grouped[item.category].push(item);
+            });
+            
+            // Sort categories alphabetically
+            const categories = Object.keys(grouped).sort();
+            
+            // Build HTML with accordion sections
+            el.innerHTML = categories.map(category => {
+                const categoryItems = grouped[category];
+                const unpurchasedCount = categoryItems.filter(i => !i.purchased).length;
+                const isExpanded = localStorage.getItem(`category-${category}`) !== 'collapsed';
+                
+                return `
+                    <div class="category-section">
+                        <div class="category-header ${isExpanded ? '' : 'collapsed'}" 
+                             onclick="toggleCategory('${escapeHtml(category)}')">
+                            <div class="category-title">
+                                <span class="category-arrow">▼</span>
+                                <span>${escapeHtml(category)}</span>
+                            </div>
+                            <span class="category-count">${unpurchasedCount} needed</span>
+                        </div>
+                        <div class="category-items ${isExpanded ? 'expanded' : ''}" id="category-${escapeHtml(category)}">
+                            ${categoryItems.map(i => `
+                                <div class="item ${i.purchased ? 'purchased' : ''}">
+                                    <input type="checkbox" class="checkbox"
+                                        ${i.purchased ? 'checked' : ''}
+                                        onchange="toggleItem(${i.id})" />
+                                    <div>
+                                        <div class="item-name">${escapeHtml(i.name)}</div>
+                                        <div class="item-meta">
+                                            <button onclick="decrementItem(${i.id}, ${i.quantity})">-</button>
+                                            <span>${i.quantity}</span>
+                                            <button onclick="incrementItem(${i.id}, ${i.quantity})">+</button>
+                                            · ${i.added_by}
+                                        </div>
+                                    </div>
+                                    <button class="delete" data-confirm="false" onclick="confirmDelete(this, ${i.id})">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <use href="#icon-trash"></use>
+                                        </svg>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+}
+
+function toggleCategory(category) {
+    const header = event.target.closest('.category-header');
+    const items = document.getElementById(`category-${category}`);
+    const isCollapsed = header.classList.toggle('collapsed');
+    items.classList.toggle('expanded');
+    
+    // Save state to localStorage
+    if (isCollapsed) {
+        localStorage.setItem(`category-${category}`, 'collapsed');
+    } else {
+        localStorage.removeItem(`category-${category}`);
+    }
+}
+
+function addItem(category) {
+    const name = itemName.value.trim();
+    if (!name) return;
+
+    const data = {
+        name,
+        list_id: currentListID,
+        quantity: itemQuantity.value || '1',
+        category: category
+    };
+
+    fetch('/api/items', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify(data)
+    }).then(() => {
+        itemName.value = '';
+        itemQuantity.value = '1';
+        itemName.focus();
+        updateQtyButtons();
+        loadItems();
+    });
+}
+
+function incrementQuantity() {
+    const q = document.getElementById('itemQuantity');
+    q.value = (parseInt(q.value) || 1) + 1;
+    updateQtyButtons();
+}
+
+function decrementQuantity() {
+    const q = document.getElementById('itemQuantity');
+    let val = parseInt(q.value) || 1;
+    if (val > 1) {
+        q.value = val - 1;
+    }
+    updateQtyButtons();
+}
+
+function updateQtyButtons() {
+    const q = document.getElementById('itemQuantity');
+    const minus = document.getElementById('qtyMinus');
+
+    if (parseInt(q.value) <= 1) {
+        minus.style.display = 'none';
+        q.value = 1;
+    } else {
+        minus.style.display = 'inline-block';
+    }
+}
+
+function incrementItem(id, currentQty) {
+    const newQty = parseInt(currentQty) + 1;
+    fetch(`/api/items/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ quantity: newQty.toString() })
+    }).then(loadItems);
+}
+
+function decrementItem(id, currentQty) {
+    const oldQty = parseInt(currentQty);
+    const newQty = oldQty > 1 ? oldQty - 1 : 1; // Declare outside, use ternary
+    fetch(`/api/items/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ quantity: newQty.toString() })
+    }).then(loadItems);
+}
+
+function toggleItem(id) {
+    fetch(`/api/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
+        .then(() => loadItems())
+        .catch(err => console.error('Failed to toggle item', err));
+}
+
+function toggleItemShopping(id) {
+    fetch(`/api/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
+        .then(() => loadShoppingModeItems())
+        .then(() => {
+            // Check if there are any unchecked items left
+            fetch('/api/items/unchecked', { credentials: 'include' })
+                .then(r => r.json())
+                .then(items => {
+                    if (!items || items.length === 0) {
+                        // No more unchecked items, turn off shopping mode
+                        shoppingModeToggle.checked = false;
+                        shoppingModeToggle.dispatchEvent(new Event('change'));
+                    }
+                });
+        })
+        .catch(err => console.error('Failed to toggle item', err));
+}
+
+function confirmDelete(btn, id) {
+    if (btn.dataset.confirm === 'true') {
+        deleteItem(id);
+        return;
+    }
+    btn.dataset.confirm = 'true';
+    btn.style.color = 'var(--danger)';
+    setTimeout(() => { 
+        btn.dataset.confirm = 'false'; 
+        btn.style.color = '';
+    }, 2000);
+}
+
+function deleteItem(id) {
+    fetch(`/api/items/${id}`, {method:'DELETE', credentials: 'include'}).then(loadItems);
+}
+
+function confirmClearPurchased(btn) {
+    if (btn.dataset.confirm === 'true') {
+        clearPurchased();
+        btn.textContent = 'Clear purchased';
+        btn.dataset.confirm = 'false';
+        return;
+    }
+    btn.dataset.confirm = 'true';
+    btn.textContent = 'Sure?';
+    setTimeout(() => { btn.dataset.confirm = 'false'; btn.textContent = 'Clear purchased'; }, 2000);
+}
+
+function clearPurchased() {
+    fetch(`/api/items?list_id=${currentListID}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(items => {
+            items.filter(i => i.purchased).forEach(i => 
+                fetch(`/api/items/${i.id}`, {method:'DELETE', credentials: 'include'})
+            );
+            setTimeout(loadItems, 300);
+        });
+}
+
+function confirmDeleteOrganization(btn) {
+    const step = parseInt(btn.dataset.step);
+    
+    if (step === 0) {
+        btn.dataset.step = '1';
+        btn.textContent = 'Click again to confirm deletion';
+        setTimeout(() => {
+            btn.dataset.step = '0';
+            btn.textContent = 'Delete Organization';
+        }, 3000);
+        return;
+    }
+    
+    if (step === 1) {
+        btn.dataset.step = '2';
+        btn.textContent = 'FINAL WARNING: Delete everything?';
+        setTimeout(() => {
+            btn.dataset.step = '0';
+            btn.textContent = 'Delete Organization';
+        }, 3000);
+        return;
+    }
+    
+    if (step === 2) {
+        btn.disabled = true;
+        btn.textContent = 'Deleting...';
+        
+        fetch('/api/organization', {
+            method: 'DELETE',
+            credentials: 'include'
+        })
+        .then(() => {
+            alert('Organization deleted. You will be logged out.');
+            window.location.reload();
+        })
+        .catch(err => {
+            alert('Failed to delete organization: ' + err.message);
+            btn.disabled = false;
+            btn.dataset.step = '0';
+            btn.textContent = 'Delete Organization';
+        });
+    }
+}
+
+// === LISTS ===
+function loadLists() {
+    return fetch('/api/lists', { credentials: 'include' })
+        .then(r => r.json())
+        .then(lists => {
+            const sel = document.getElementById('listSelector');
+
+            if (!lists || lists.length === 0) {
+                sel.innerHTML = '<option value="">No lists</option>';
+                currentListID = 0;
+                return 0;
+            }
+
+            // If currentListID is invalid, pick first list
+            const listExists = lists.some(l => l.id === currentListID);
+            if (!listExists || currentListID === 0) {
+                currentListID = lists[0].id;
+            }
+
+            sel.innerHTML = lists.map(l => 
+                `<option value="${l.id}" ${l.id === currentListID ? 'selected' : ''}>
+                    ${escapeHtml(l.name)}
+                 </option>`
+            ).join('');
+
+            const mgmt = document.getElementById('listManagement');
+            mgmt.innerHTML = lists.map(l => `
+                <div class="settings-item">
+                    <input value="${escapeHtml(l.name)}"
+                           onchange="renameList(${l.id}, this.value)" />
+                    <button class="delete"
+                            data-confirm="false"
+                            onclick="confirmDeleteList(this, ${l.id})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <use href="#icon-trash"></use>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            return currentListID;
+        });
+}
+
+function switchList() {
+    currentListID = parseInt(document.getElementById('listSelector').value);
+    localStorage.setItem('currentListID', currentListID);
+    updateWebSocketListID();
+    loadItems();
+    loadShoppingModeItems();
+}
+
+function createList() {
+    const name = document.getElementById('newListName').value.trim();
+    if (!name) return;
+    fetch('/api/lists', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({name})
+    }).then(() => {
+        document.getElementById('newListName').value = '';
+        loadLists();
+    });
+}
+
+function renameList(id, name) {
+    fetch(`/api/lists/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({name})
+    }).then(loadLists);
+}
+
+function deleteList(id) {
+    fetch(`/api/lists/${id}`, {method: 'DELETE', credentials: 'include'})
+        .then(loadLists);
+}
+
+function confirmDeleteList(btn, id) {
+    if (btn.dataset.confirm === 'true') {
+        deleteList(id);
+        return;
+    }
+    btn.dataset.confirm = 'true';
+    setTimeout(() => btn.dataset.confirm = 'false', 2000);
+}
+
+// === CATEGORIES ===
+function loadCategories() {
+    fetch('/api/categories', { credentials: 'include' })
+        .then(r => r.json())
+        .then(cats => {
+            const el = document.getElementById('categories');
+            const buttons = document.getElementById('categoryButtons');
+
+            el.innerHTML = cats.map(c => `
+                <div class="settings-item">
+                    <input value="${escapeHtml(c.name)}" onchange="renameCategory(${c.id}, this.value)" />
+                    <button
+                        class="delete"
+                        data-confirm="false"
+                        onclick="confirmDeleteCategory(this, ${c.id})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <use href="#icon-trash"></use>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            buttons.innerHTML = cats.map(c => 
+                `<button onclick="addItem('${escapeHtml(c.name)}')">${escapeHtml(c.name)}</button>`
+            ).join('');
+        });
+}
+
+function addCategory() {
+    const name = newCategory.value.trim();
+    if (!name) return;
+
+    fetch('/api/categories', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({name})
+    }).then(() => {
+        newCategory.value = '';
+        loadCategories();
+    });
+}
+
+function renameCategory(id, name) {
+    fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({name})
+    }).then(loadCategories);
+}
+
+function confirmDeleteCategory(btn, id) {
+    if (btn.dataset.confirm === 'true') {
+        deleteCategory(id);
+        return;
+    }
+    btn.dataset.confirm = 'true';
+    btn.style.color = 'var(--danger)';
+    setTimeout(() => { 
+        btn.dataset.confirm = 'false'; 
+        btn.style.color = '';
+    }, 2000);
+}
+
+function deleteCategory(id) {
+    fetch(`/api/categories/${id}`, {method:'DELETE', credentials: 'include'})
+        .then(loadCategories)
+        .then(loadItems);
+}
+
+// === USERS ===
+function loadUsers() {
+    fetch('/api/users', { credentials: 'include' })
+        .then(r => r.json())
+        .then(users => {
+            const ul = document.getElementById('userList');
+            ul.innerHTML = users.map(u => `
+                <div class="settings-item">
+                    <input
+                        value="${escapeHtml(u.username)}"
+                        onchange="renameUser(${u.id}, this.value)"
+                    />
+                    <select onchange="reroleUser(${u.id}, this.value)">
+                        <option value="User" ${u.role === 'User' ? 'selected' : ''}>User</option>
+                        <option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                    <button
+                        class="delete"
+                        data-confirm="false"
+                        onclick="confirmDeleteUser(this, ${u.id})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <use href="#icon-trash"></use>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+        });
+}
+
+function createUser() {
+    const username = newUsername.value.trim();
+    const password = newPassword.value.trim();
+    const passwordConfirm = newPasswordConfirm.value.trim();
+    const role = newRole.value;
+    const error = document.getElementById('createUserError');
+    error.textContent = '';
+
+    if (!username || !password || !passwordConfirm) {
+        error.textContent = 'All fields are required';
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        error.textContent = 'Passwords do not match';
+        return;
+    }
+
+    if (password.length < 6) {
+        error.textContent = 'Password must be at least 6 characters';
+        return;
+    }
+
+    fetch('/api/users', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({username, password, role})
+    })
+    .then(r => {
+        if (!r.ok) {
+            if (r.status === 409) throw new Error('Username already exists');
+            throw new Error('Failed to create user');
+        }
+        return r.json();
+    })
+    .then(() => {
+        newUsername.value = '';
+        newPassword.value = '';
+        newPasswordConfirm.value = '';
+        error.style.color = 'var(--accent)';
+        error.textContent = 'User created successfully';
+        setTimeout(() => {
+            error.textContent = '';
+            error.style.color = 'var(--danger)';
+        }, 3000);
+        loadUsers();
+    })
+    .catch(err => {
+        error.textContent = err.message;
+    });
+}
+
+function renameUser(id, username) {
+    fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ username })
+    }).then(loadUsers);
+}
+
+function reroleUser(id, role) {
+    fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ role })
+    }).then(loadUsers);
+}
+
+function confirmDeleteUser(btn, id) {
+    if (btn.dataset.confirm === 'true') {
+        deleteUser(id);
+        return;
+    }
+    btn.dataset.confirm = 'true';
+    btn.style.color = 'var(--danger)';
+    setTimeout(() => {
+        btn.dataset.confirm = 'false';
+        btn.style.color = '';
+    }, 2000);
+}
+
+function deleteUser(id) {
+    fetch(`/api/users/${id}`, { method:'DELETE', credentials: 'include' })
+        .then(loadUsers);
+}
+
+// === Shopping Mode ===
+const shoppingModeToggle = document.getElementById("shoppingModeToggle");
+const shoppingModeItems = document.getElementById("shoppingModeItems");
+
+shoppingModeToggle.addEventListener("change", () => {
+    const appPanels = document.querySelectorAll(".app > .panel:not(#settingsPanel)");
+    if (shoppingModeToggle.checked) {
+        appPanels.forEach(p => p.style.display = "none");
+        shoppingModeItems.style.display = "block";
+    } else {
+        appPanels.forEach(p => p.style.display = "block");
+        shoppingModeItems.style.display = "none";
+    }
+    loadShoppingModeItems();
+});
+
+function loadShoppingModeItems() {
+    fetch(`/api/items/unchecked?list_id=${currentListID}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(items => {
+            if (!items || items.length === 0) {
+                shoppingModeItems.innerHTML = '<div class="empty">No items to shop for</div>';
+                return;
+            }
+            shoppingModeItems.innerHTML = items.map(item => `
+                <div class="item">
+                    <span>${item.quantity}</span>
+                    <div>
+                        <div class="item-name">${escapeHtml(item.name)}</div>
+                        <div class="item-category badge">${escapeHtml(item.category)}</div>
+                    </div>
+                    <button onclick="toggleItemShopping(${item.id})">✓</button>
+                </div>
+            `).join('');
+        });
+}
+
+// === SETTINGS PANEL ===
+function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    const btn = document.getElementById('settingsBtn');
+    const isOpen = panel.style.display === 'block';
+    
+    if (isOpen) {
+        panel.style.display = 'none';
+        btn.classList.remove('active');
+    } else {
+        panel.style.display = 'block';
+        btn.classList.add('active');
+    }
+}
+
+function closeSettings() {
+    document.getElementById('settingsPanel').style.display = 'none';
+    document.getElementById('settingsBtn').classList.remove('active');
+}
+
+// === WAKE LOCK ===
+let wakeLock = null;
+const wakeToggle = document.getElementById('wakeToggle');
+const wakeEnabled = localStorage.getItem('keepAwake') === 'true';
+wakeToggle.checked = wakeEnabled;
+
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try { wakeLock = await navigator.wakeLock.request('screen'); } 
+    catch (err) { console.warn('Wake Lock failed:', err); }
+}
+function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
+wakeToggle.addEventListener('change', () => {
+    localStorage.setItem('keepAwake', wakeToggle.checked);
+    wakeToggle.checked ? requestWakeLock() : releaseWakeLock();
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && wakeToggle.checked) requestWakeLock();
+});
+if (wakeToggle.checked) requestWakeLock();
+
+// === UTIL ===
+function escapeHtml(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+// === WEBSOCKET ===
+let ws = null;
+let reconnectTimeout = null;
+
+function connectWebSocket() {
+    // Hard stop if list is not ready
+    if (!currentListID || currentListID === 0) {
+        console.warn('WebSocket not connected: invalid list ID', currentListID);
+        return;
+    }
+
+    // Close existing socket if switching lists
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+        ws.close();
+    }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws?list_id=${currentListID}`;
+
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+        console.log('WebSocket connected for list', currentListID);
+        clearTimeout(reconnectTimeout);
+        updateConnectionCount();
+    };
+
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'connection_count') {
+            const text = document.getElementById('connectionText');
+            const dot = document.getElementById('connectionDot');
+
+            text.textContent = `${msg.data.count}`;
+            dot.style.display = msg.data.count > 1 ? 'block' : 'none';
+            return;
+        }
+        switch (msg.type) {
+            case 'item_created':
+            case 'item_updated':
+            case 'item_toggled':
+            case 'item_deleted':
+                loadItems();
+                if (shoppingModeToggle.checked) {
+                    loadShoppingModeItems();
+                }
+                break;
+        }
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket disconnected, retrying...');
+        reconnectTimeout = setTimeout(connectWebSocket, 3000);
+    };
+    ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        ws.close();
+    };
+}
+
+function updateConnectionCount() {
+    fetch('/api/connections', { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            const text = document.getElementById('connectionText');
+            const dot = document.getElementById('connectionDot');
+            
+            text.textContent = `${data.count}`;
+            
+            // Show green dot if more than 1 user (meaning someone else is connected)
+            if (data.count > 1) {
+                dot.style.display = 'block';
+            } else {
+                dot.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+}
+
+function updateWebSocketListID() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ list_id: currentListID }));
+    }
+}
+
+// Login screen - press Enter to submit
+document.getElementById('loginUsername').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+// Item name - press Enter to add
+itemName.addEventListener('keydown', e => { 
+    if (e.key === 'Enter') {
+        const firstCat = document.querySelector('#categoryButtons button');
+        if (firstCat) firstCat.click();
+    }
+});
+
+function checkAdmin() {
+    fetch('/api/me', { credentials: 'include' })
+        .then(r => r.json())
+        .then(user => {
+            const usersSection = document.getElementById('usersSection');
+            const dangerSection = document.getElementById('dangerSection');  // ADD THIS
+            if (!user || user.role !== 'Admin') {
+                if (usersSection) usersSection.style.display = 'none';
+                if (dangerSection) dangerSection.style.display = 'none';  // ADD THIS
+            } else {
+                if (usersSection) usersSection.style.display = 'block';
+                if (dangerSection) dangerSection.style.display = 'block';  // ADD THIS
+                loadUsers();
+            }
+        });
+}
+
+function changePassword() {
+    const current = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPasswordChange').value;
+    const confirm = document.getElementById('newPasswordConfirm').value;
+    const error = document.getElementById('passwordChangeError');
+    error.textContent = '';
+
+    if (!current || !newPass || !confirm) {
+        error.textContent = 'All fields required';
+        return;
+    }
+
+    if (newPass !== confirm) {
+        error.textContent = 'New passwords do not match';
+        return;
+    }
+
+    if (newPass.length < 6) {
+        error.textContent = 'Password must be at least 6 characters';
+        return;
+    }
+
+    fetch('/api/me/password', {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({current_password: current, new_password: newPass})
+    })
+    .then(r => {
+        if (!r.ok) {
+            if (r.status === 401) throw new Error('Current password incorrect');
+            throw new Error('Failed to change password');
+        }
+        return r.json();
+    })
+    .then(() => {
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPasswordChange').value = '';
+        document.getElementById('newPasswordConfirm').value = '';
+        error.style.color = 'var(--accent)';
+        error.textContent = 'Password changed successfully';
+        setTimeout(() => {
+            error.textContent = '';
+            error.style.color = 'var(--danger)';
+        }, 3000);
+    })
+    .catch(err => {
+        error.textContent = err.message;
+    });
+}
+
+// Service Worker - only register on HTTPS or localhost
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js', { scope: '/' })
+            .then(reg => console.log('Service Worker registered:', reg.scope))
+            .catch(err => console.error('Service Worker registration failed:', err));
+    });
+}
+
+// Check session on page load
+checkSession();
+
+</script>
+    </body>
+</html>

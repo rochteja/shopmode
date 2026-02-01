@@ -1,0 +1,24 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+api
+
+# Test files
+*_test.go
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Git and docs
+.git/
+.gitignore
+README.md
+.env
+*.log
+.DS_Store

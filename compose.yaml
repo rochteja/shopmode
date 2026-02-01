@@ -1,0 +1,28 @@
+services:
+  shopapp:
+    image: shopping:latest
+    pull_policy: never
+    container_name: shopapp
+    user: "1001:1001"
+    environment:
+      - HTTPS=true
+      - SESSION_KEY=your-random-secret-key-here-change-this
+      - APP_TITLE=Shop Mode
+      - DEFAULT_ORGANIZATION=RockTea
+      - DEFAULT_LIST=Shopping
+      - DEFAULT_ADMIN_USERNAME=Jake
+      - DEFAULT_ADMIN_PASSWORD=A17j11t2b1
+    ports:
+      - "3035:3000"
+    volumes:
+      - shop-data:/app/data
+    restart: unless-stopped
+    networks:
+      - userbridge
+
+networks:
+  userbridge:
+    external: true
+
+volumes:
+  shop-data:
