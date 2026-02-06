@@ -206,27 +206,27 @@ func main() {
 	r.Get("/", homeHandler)
 
 	// Debug
-	r.Get("/api/debug/database", requireLogin(requireAdmin(http.HandlerFunc(debugDatabaseHandler))))
+	r.Get("/api/debug/database", requireLogin(requireAdmin(debugDatabaseHandler)))
 
 	// Lists
-	r.Get("/api/lists", requireLogin(http.HandlerFunc(getListsHandler)))
-	r.Post("/api/lists", requireLogin(http.HandlerFunc(createListHandler)))
-	r.Put("/api/lists/{id}", requireLogin(http.HandlerFunc(updateListHandler)))
-	r.Delete("/api/lists/{id}", requireLogin(http.HandlerFunc(deleteListHandler)))
+	r.Get("/api/lists", requireLogin(getListsHandler))
+	r.Post("/api/lists", requireLogin(createListHandler))
+	r.Put("/api/lists/{id}", requireLogin(updateListHandler))
+	r.Delete("/api/lists/{id}", requireLogin(deleteListHandler))
 
 	// Items
-	r.Get("/api/items", requireLogin(http.HandlerFunc(getItemsHandler)))
-	r.Get("/api/items/unchecked", requireLogin(http.HandlerFunc(getUncheckedItemsHandler)))
-	r.Post("/api/items", requireLogin(http.HandlerFunc(createItemHandler)))
-	r.Put("/api/items/{id}", requireLogin(http.HandlerFunc(updateItemHandler)))
-	r.Delete("/api/items/{id}", requireLogin(http.HandlerFunc(deleteItemHandler)))
-	r.Post("/api/items/{id}/toggle", requireLogin(http.HandlerFunc(toggleItemHandler)))
+	r.Get("/api/items", requireLogin(getItemsHandler))
+	r.Get("/api/items/unchecked", requireLogin(getUncheckedItemsHandler))
+	r.Post("/api/items", requireLogin(createItemHandler))
+	r.Put("/api/items/{id}", requireLogin(updateItemHandler))
+	r.Delete("/api/items/{id}", requireLogin(deleteItemHandler))
+	r.Post("/api/items/{id}/toggle", requireLogin(toggleItemHandler))
 
 	// Categories
-	r.Get("/api/categories", requireLogin(http.HandlerFunc(getCategoriesHandler)))
-	r.Post("/api/categories", requireLogin(requireAdmin(http.HandlerFunc(createCategoryHandler))))
-	r.Put("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateCategoryHandler))))
-	r.Delete("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteCategoryHandler))))
+	r.Get("/api/categories", requireLogin(getCategoriesHandler))
+	r.Post("/api/categories", requireLogin(requireAdmin(createCategoryHandler)))
+	r.Put("/api/categories/{id}", requireLogin(requireAdmin(updateCategoryHandler)))
+	r.Delete("/api/categories/{id}", requireLogin(requireAdmin(deleteCategoryHandler)))
 
 	// Auth
 	r.Post("/api/signup", signupHandler)
@@ -234,20 +234,20 @@ func main() {
 	r.Post("/api/logout", logoutHandler)
 
 	// Me
-	r.Get("/api/me", requireLogin(http.HandlerFunc(meHandler)))
-	r.Put("/api/me/password", requireLogin(http.HandlerFunc(changePasswordHandler)))
+	r.Get("/api/me", requireLogin(meHandler))
+	r.Put("/api/me/password", requireLogin(changePasswordHandler))
 
 	// Organization (admin only)
-	r.Delete("/api/organization", requireLogin(requireAdmin(http.HandlerFunc(deleteOrganizationHandler))))
+	r.Delete("/api/organization", requireLogin(requireAdmin(deleteOrganizationHandler)))
 
 	// Connections
-	r.Get("/api/connections", requireLogin(http.HandlerFunc(connectionsHandler)))
+	r.Get("/api/connections", requireLogin(connectionsHandler))
 
 	// Users (admin only)
-	r.Get("/api/users", requireLogin(requireAdmin(http.HandlerFunc(listUsersHandler))))
-	r.Post("/api/users", requireLogin(requireAdmin(http.HandlerFunc(createUserHandler))))
-	r.Delete("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteUserHandler))))
-	r.Put("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateUserHandler))))
+	r.Get("/api/users", requireLogin(requireAdmin(listUsersHandler)))
+	r.Post("/api/users", requireLogin(requireAdmin(createUserHandler)))
+	r.Delete("/api/users/{id}", requireLogin(requireAdmin(deleteUserHandler)))
+	r.Put("/api/users/{id}", requireLogin(requireAdmin(updateUserHandler)))
 
 	fmt.Println("Server running on http://0.0.0.0:8888")
 	log.Fatal(http.ListenAndServe(":8888", r))
