@@ -193,61 +193,99 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Static files
-	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	
+	// ---------- Static / Public ----------
+	r.Handle("/static/*",
+		http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))),
+	)
 
-	// Serve favicon.ico from container root
 	r.Handle("/favicon.ico", http.FileServer(http.Dir("./")))
-
-	// WebSocket
 	r.HandleFunc("/ws", wsHandler)
 
-	// UI
 	r.Get("/", homeHandler)
 
-	// Debug
-	r.Get("/api/debug/database", requireLogin(requireAdmin(debugDatabaseHandler)))
 
-	// Lists
-	r.Get("/api/lists", requireLogin(getListsHandler))
-	r.Post("/api/lists", requireLogin(createListHandler))
-	r.Put("/api/lists/{id}", requireLogin(updateListHandler))
-	r.Delete("/api/lists/{id}", requireLogin(deleteListHandler))
+	// ---------- API ----------
+	r.Route("/api", func(r chi.Router) {
 
-	// Items
-	r.Get("/api/items", requireLogin(getItemsHandler))
-	r.Get("/api/items/unchecked", requireLogin(getUncheckedItemsHandler))
-	r.Post("/api/items", requireLogin(createItemHandler))
-	r.Put("/api/items/{id}", requireLogin(updateItemHandler))
-	r.Delete("/api/items/{id}", requireLogin(deleteItemHandler))
-	r.Post("/api/items/{id}/toggle", requireLogin(toggleItemHandler))
+		// ---------- v1 ----------
+		r.Route("/v1", func(r chi.Router) {
 
-	// Categories
-	r.Get("/api/categories", requireLogin(getCategoriesHandler))
-	r.Post("/api/categories", requireLogin(requireAdmin(createCategoryHandler)))
-	r.Put("/api/categories/{id}", requireLogin(requireAdmin(updateCategoryHandler)))
-	r.Delete("/api/categories/{id}", requireLogin(requireAdmin(deleteCategoryHandler)))
+			// ---- Public auth ----
+			r.Post("/signup", signupHandler)
+			r.Post("/login", loginHandler)
+			r.Post("/logout", logoutHandler)
 
-	// Auth
-	r.Post("/api/signup", signupHandler)
-	r.Post("/api/login", loginHandler)
-	r.Post("/api/logout", logoutHandler)
 
-	// Me
-	r.Get("/api/me", requireLogin(meHandler))
-	r.Put("/api/me/password", requireLogin(changePasswordHandler))
+			// ---- Authenticated routes ----
+			r.With(requireLogin).Group(func(r chi.Router) {
 
-	// Organization (admin only)
-	r.Delete("/api/organization", requireLogin(requireAdmin(deleteOrganizationHandler)))
+				// ---- Debug (admin only) ----
+				r.With(requireAdmin).
+					Get("/debug/database", debugDatabaseHandler)
 
-	// Connections
-	r.Get("/api/connections", requireLogin(connectionsHandler))
 
-	// Users (admin only)
-	r.Get("/api/users", requireLogin(requireAdmin(listUsersHandler)))
-	r.Post("/api/users", requireLogin(requireAdmin(createUserHandler)))
-	r.Delete("/api/users/{id}", requireLogin(requireAdmin(deleteUserHandler)))
-	r.Put("/api/users/{id}", requireLogin(requireAdmin(updateUserHandler)))
+				// ---- Lists ----
+				r.Route("/lists", func(r chi.Router) {
+					r.Get("/", getListsHandler)
+					r.Post("/", createListHandler)
+					r.Put("/{id}", updateListHandler)
+					r.Delete("/{id}", deleteListHandler)
+				})
+
+
+				// ---- Items ----
+				r.Route("/items", func(r chi.Router) {
+					r.Get("/", getItemsHandler)
+					r.Get("/unchecked", getUncheckedItemsHandler)
+					r.Post("/", createItemHandler)
+					r.Put("/{id}", updateItemHandler)
+					r.Delete("/{id}", deleteItemHandler)
+					r.Post("/{id}/toggle", toggleItemHandler)
+				})
+
+
+				// ---- Categories ----
+				r.Route("/categories", func(r chi.Router) {
+					r.Get("/", getCategoriesHandler)
+
+					r.With(requireAdmin).Group(func(r chi.Router) {
+						r.Post("/", createCategoryHandler)
+						r.Put("/{id}", updateCategoryHandler)
+						r.Delete("/{id}", deleteCategoryHandler)
+					})
+				})
+
+
+				// ---- Me ----
+				r.Route("/me", func(r chi.Router) {
+					r.Get("/", meHandler)
+					r.Put("/password", changePasswordHandler)
+				})
+
+
+				// ---- Connections ----
+				r.Get("/connections", connectionsHandler)
+
+
+				// ---- Organization (admin only) ----
+				r.With(requireAdmin).
+					Delete("/organization", deleteOrganizationHandler)
+
+
+				// ---- Users (admin only) ----
+				r.Route("/users", func(r chi.Router) {
+					r.With(requireAdmin).Group(func(r chi.Router) {
+						r.Get("/", listUsersHandler)
+						r.Post("/", createUserHandler)
+						r.Put("/{id}", updateUserHandler)
+						r.Delete("/{id}", deleteUserHandler)
+					})
+				})
+			})
+		})
+	})
+
 
 	fmt.Println("Server running on http://0.0.0.0:8888")
 	log.Fatal(http.ListenAndServe(":8888", r))

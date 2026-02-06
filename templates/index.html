@@ -907,7 +907,7 @@ let currentListID = parseInt(localStorage.getItem('currentListID')) || 1;
 
 // Check if already logged in on page load
 function checkSession() {
-    fetch('/api/me', { credentials: 'include' })
+    fetch('/api/v1/me', { credentials: 'include' })
         .then(r => {
             if (r.ok) return r.json();
             throw new Error('Not logged in');
@@ -972,7 +972,7 @@ function signup() {
         return;
     }
 
-    fetch('/api/signup', {
+    fetch('/api/v1/signup', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({org_name: orgName, username, password})
@@ -1017,7 +1017,7 @@ function login() {
     const error = document.getElementById('loginError');
     error.textContent = '';
 
-    fetch('/api/login', {
+    fetch('/api/v1/login', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1029,7 +1029,7 @@ function login() {
     })
     .then(data => {
         userName = data.username;
-        fetch('/api/me', { credentials: 'include' })
+        fetch('/api/v1/me', { credentials: 'include' })
         .then(r => r.json())
         .then(user => {
             document.getElementById('loggedin-organization').textContent = user.org_name || `Org ID: ${user.org_id}`;
@@ -1045,7 +1045,7 @@ function login() {
 }
 
 function logout() {
-    fetch('/api/logout', { method: 'POST', credentials: 'include' })
+    fetch('/api/v1/logout', { method: 'POST', credentials: 'include' })
         .then(() => {
             userName = '';
             document.getElementById('loginUsername').value = '';
@@ -1058,7 +1058,7 @@ function logout() {
 
 // === ITEMS ===
 function loadItems() {
-    fetch(`/api/items?list_id=${currentListID}`, { credentials: 'include' })
+    fetch(`/api/v1/items?list_id=${currentListID}`, { credentials: 'include' })
         .then(r => r.json())
         .then(items => {
             const el = document.getElementById('itemsList');
@@ -1149,7 +1149,7 @@ function addItem(category) {
         category: category
     };
 
-    fetch('/api/items', {
+    fetch('/api/v1/items', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1192,7 +1192,7 @@ function updateQtyButtons() {
 
 function incrementItem(id, currentQty) {
     const newQty = parseInt(currentQty) + 1;
-    fetch(`/api/items/${id}`, {
+    fetch(`/api/v1/items/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1203,7 +1203,7 @@ function incrementItem(id, currentQty) {
 function decrementItem(id, currentQty) {
     const oldQty = parseInt(currentQty);
     const newQty = oldQty > 1 ? oldQty - 1 : 1; // Declare outside, use ternary
-    fetch(`/api/items/${id}`, {
+    fetch(`/api/v1/items/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1212,17 +1212,17 @@ function decrementItem(id, currentQty) {
 }
 
 function toggleItem(id) {
-    fetch(`/api/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
+    fetch(`/api/v1/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
         .then(() => loadItems())
         .catch(err => console.error('Failed to toggle item', err));
 }
 
 function toggleItemShopping(id) {
-    fetch(`/api/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
+    fetch(`/api/v1/items/${id}/toggle`, { method: 'POST', credentials: 'include' })
         .then(() => loadShoppingModeItems())
         .then(() => {
             // Check if there are any unchecked items left
-            fetch('/api/items/unchecked', { credentials: 'include' })
+            fetch('/api/v1/items/unchecked', { credentials: 'include' })
                 .then(r => r.json())
                 .then(items => {
                     if (!items || items.length === 0) {
@@ -1249,7 +1249,7 @@ function confirmDelete(btn, id) {
 }
 
 function deleteItem(id) {
-    fetch(`/api/items/${id}`, {method:'DELETE', credentials: 'include'}).then(loadItems);
+    fetch(`/api/v1/items/${id}`, {method:'DELETE', credentials: 'include'}).then(loadItems);
 }
 
 function confirmClearPurchased(btn) {
@@ -1265,11 +1265,11 @@ function confirmClearPurchased(btn) {
 }
 
 function clearPurchased() {
-    fetch(`/api/items?list_id=${currentListID}`, { credentials: 'include' })
+    fetch(`/api/v1/items?list_id=${currentListID}`, { credentials: 'include' })
         .then(r => r.json())
         .then(items => {
             items.filter(i => i.purchased).forEach(i => 
-                fetch(`/api/items/${i.id}`, {method:'DELETE', credentials: 'include'})
+                fetch(`/api/v1/items/${i.id}`, {method:'DELETE', credentials: 'include'})
             );
             setTimeout(loadItems, 300);
         });
@@ -1302,7 +1302,7 @@ function confirmDeleteOrganization(btn) {
         btn.disabled = true;
         btn.textContent = 'Deleting...';
         
-        fetch('/api/organization', {
+        fetch('/api/v1/organization', {
             method: 'DELETE',
             credentials: 'include'
         })
@@ -1321,7 +1321,7 @@ function confirmDeleteOrganization(btn) {
 
 // === LISTS ===
 function loadLists() {
-    return fetch('/api/lists', { credentials: 'include' })
+    return fetch('/api/v1/lists', { credentials: 'include' })
         .then(r => r.json())
         .then(lists => {
             const sel = document.getElementById('listSelector');
@@ -1374,7 +1374,7 @@ function switchList() {
 function createList() {
     const name = document.getElementById('newListName').value.trim();
     if (!name) return;
-    fetch('/api/lists', {
+    fetch('/api/v1/lists', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         credentials: 'include',
@@ -1386,7 +1386,7 @@ function createList() {
 }
 
 function renameList(id, name) {
-    fetch(`/api/lists/${id}`, {
+    fetch(`/api/v1/lists/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         credentials: 'include',
@@ -1395,7 +1395,7 @@ function renameList(id, name) {
 }
 
 function deleteList(id) {
-    fetch(`/api/lists/${id}`, {method: 'DELETE', credentials: 'include'})
+    fetch(`/api/v1/lists/${id}`, {method: 'DELETE', credentials: 'include'})
         .then(loadLists);
 }
 
@@ -1410,7 +1410,7 @@ function confirmDeleteList(btn, id) {
 
 // === CATEGORIES ===
 function loadCategories() {
-    fetch('/api/categories', { credentials: 'include' })
+    fetch('/api/v1/categories', { credentials: 'include' })
         .then(r => r.json())
         .then(cats => {
             const el = document.getElementById('categories');
@@ -1440,7 +1440,7 @@ function addCategory() {
     const name = newCategory.value.trim();
     if (!name) return;
 
-    fetch('/api/categories', {
+    fetch('/api/v1/categories', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1452,7 +1452,7 @@ function addCategory() {
 }
 
 function renameCategory(id, name) {
-    fetch(`/api/categories/${id}`, {
+    fetch(`/api/v1/categories/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1474,14 +1474,14 @@ function confirmDeleteCategory(btn, id) {
 }
 
 function deleteCategory(id) {
-    fetch(`/api/categories/${id}`, {method:'DELETE', credentials: 'include'})
+    fetch(`/api/v1/categories/${id}`, {method:'DELETE', credentials: 'include'})
         .then(loadCategories)
         .then(loadItems);
 }
 
 // === USERS ===
 function loadUsers() {
-    fetch('/api/users', { credentials: 'include' })
+    fetch('/api/v1/users', { credentials: 'include' })
         .then(r => r.json())
         .then(users => {
             const ul = document.getElementById('userList');
@@ -1531,7 +1531,7 @@ function createUser() {
         return;
     }
 
-    fetch('/api/users', {
+    fetch('/api/v1/users', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1562,7 +1562,7 @@ function createUser() {
 }
 
 function renameUser(id, username) {
-    fetch(`/api/users/${id}`, {
+    fetch(`/api/v1/users/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1571,7 +1571,7 @@ function renameUser(id, username) {
 }
 
 function reroleUser(id, role) {
-    fetch(`/api/users/${id}`, {
+    fetch(`/api/v1/users/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
@@ -1593,7 +1593,7 @@ function confirmDeleteUser(btn, id) {
 }
 
 function deleteUser(id) {
-    fetch(`/api/users/${id}`, { method:'DELETE', credentials: 'include' })
+    fetch(`/api/v1/users/${id}`, { method:'DELETE', credentials: 'include' })
         .then(loadUsers);
 }
 
@@ -1614,7 +1614,7 @@ shoppingModeToggle.addEventListener("change", () => {
 });
 
 function loadShoppingModeItems() {
-    fetch(`/api/items/unchecked?list_id=${currentListID}`, { credentials: 'include' })
+    fetch(`/api/v1/items/unchecked?list_id=${currentListID}`, { credentials: 'include' })
         .then(r => r.json())
         .then(items => {
             if (!items || items.length === 0) {
@@ -1739,7 +1739,7 @@ function connectWebSocket() {
 }
 
 function updateConnectionCount() {
-    fetch('/api/connections', { credentials: 'include' })
+    fetch('/api/v1/connections', { credentials: 'include' })
         .then(r => r.json())
         .then(data => {
             const text = document.getElementById('connectionText');
@@ -1776,7 +1776,7 @@ itemName.addEventListener('keydown', e => {
 });
 
 function checkAdmin() {
-    fetch('/api/me', { credentials: 'include' })
+    fetch('/api/v1/me', { credentials: 'include' })
         .then(r => r.json())
         .then(user => {
             const usersSection = document.getElementById('usersSection');
@@ -1814,7 +1814,7 @@ function changePassword() {
         return;
     }
 
-    fetch('/api/me/password', {
+    fetch('/api/v1/me/password', {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
         credentials: 'include',
