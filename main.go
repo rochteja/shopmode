@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 	_ "github.com/mattn/go-sqlite3"
@@ -177,23 +177,24 @@ func main() {
 	}
 	defer db.Close()
 
+	db.Exec("PRAGMA journal_mode=WAL")
+	db.Exec("PRAGMA busy_timeout=5000")
+
 	createTable()
 	createUserTable()
 
 	// Start WebSocket hub
 	go handleBroadcasts()
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 	r.Use(securityHeadersMiddleware)
 
 	staticFS, err := fs.Sub(embedFS, "static")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	r.PathPrefix("/static/").Handler(
-		http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))),
-	)
+	// Static files
+	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
 	// Serve favicon.ico from container root
 	r.Handle("/favicon.ico", http.FileServer(http.Dir("./")))
@@ -202,51 +203,51 @@ func main() {
 	r.HandleFunc("/ws", wsHandler)
 
 	// UI
-	r.HandleFunc("/", homeHandler).Methods("GET")
+	r.Get("/", homeHandler)
 
 	// Debug
-	r.Handle("/api/debug/database", requireLogin(requireAdmin(http.HandlerFunc(debugDatabaseHandler)))).Methods("GET")
+	r.Get("/api/debug/database", requireLogin(requireAdmin(http.HandlerFunc(debugDatabaseHandler))))
 
 	// Lists
-	r.Handle("/api/lists", requireLogin(http.HandlerFunc(getListsHandler))).Methods("GET")
-	r.Handle("/api/lists", requireLogin(http.HandlerFunc(createListHandler))).Methods("POST")
-	r.Handle("/api/lists/{id}", requireLogin(http.HandlerFunc(updateListHandler))).Methods("PUT")
-	r.Handle("/api/lists/{id}", requireLogin(http.HandlerFunc(deleteListHandler))).Methods("DELETE")
+	r.Get("/api/lists", requireLogin(http.HandlerFunc(getListsHandler)))
+	r.Post("/api/lists", requireLogin(http.HandlerFunc(createListHandler)))
+	r.Put("/api/lists/{id}", requireLogin(http.HandlerFunc(updateListHandler)))
+	r.Delete("/api/lists/{id}", requireLogin(http.HandlerFunc(deleteListHandler)))
 
 	// Items
-	r.Handle("/api/items", requireLogin(http.HandlerFunc(getItemsHandler))).Methods("GET") // Will use ?list_id=X
-	r.Handle("/api/items/unchecked", requireLogin(http.HandlerFunc(getUncheckedItemsHandler))).Methods("GET")
-	r.Handle("/api/items", requireLogin(http.HandlerFunc(createItemHandler))).Methods("POST")
-	r.Handle("/api/items/{id}", requireLogin(http.HandlerFunc(updateItemHandler))).Methods("PUT")
-	r.Handle("/api/items/{id}", requireLogin(http.HandlerFunc(deleteItemHandler))).Methods("DELETE")
-	r.Handle("/api/items/{id}/toggle", requireLogin(http.HandlerFunc(toggleItemHandler))).Methods("POST")
+	r.Get("/api/items", requireLogin(http.HandlerFunc(getItemsHandler)))
+	r.Get("/api/items/unchecked", requireLogin(http.HandlerFunc(getUncheckedItemsHandler)))
+	r.Post("/api/items", requireLogin(http.HandlerFunc(createItemHandler)))
+	r.Put("/api/items/{id}", requireLogin(http.HandlerFunc(updateItemHandler)))
+	r.Delete("/api/items/{id}", requireLogin(http.HandlerFunc(deleteItemHandler)))
+	r.Post("/api/items/{id}/toggle", requireLogin(http.HandlerFunc(toggleItemHandler)))
 
 	// Categories
-	r.Handle("/api/categories", requireLogin(http.HandlerFunc(getCategoriesHandler))).Methods("GET")
-	r.Handle("/api/categories", requireLogin(requireAdmin(http.HandlerFunc(createCategoryHandler)))).Methods("POST")
-	r.Handle("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateCategoryHandler)))).Methods("PUT")
-	r.Handle("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteCategoryHandler)))).Methods("DELETE")
+	r.Get("/api/categories", requireLogin(http.HandlerFunc(getCategoriesHandler)))
+	r.Post("/api/categories", requireLogin(requireAdmin(http.HandlerFunc(createCategoryHandler))))
+	r.Put("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateCategoryHandler))))
+	r.Delete("/api/categories/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteCategoryHandler))))
 
 	// Auth
-	r.HandleFunc("/api/signup", signupHandler).Methods("POST")
-	r.HandleFunc("/api/login", loginHandler).Methods("POST")
-	r.HandleFunc("/api/logout", logoutHandler).Methods("POST")
+	r.Post("/api/signup", signupHandler)
+	r.Post("/api/login", loginHandler)
+	r.Post("/api/logout", logoutHandler)
 
 	// Me
-	r.Handle("/api/me", requireLogin(http.HandlerFunc(meHandler))).Methods("GET")
-	r.Handle("/api/me/password", requireLogin(http.HandlerFunc(changePasswordHandler))).Methods("PUT")
+	r.Get("/api/me", requireLogin(http.HandlerFunc(meHandler)))
+	r.Put("/api/me/password", requireLogin(http.HandlerFunc(changePasswordHandler)))
 
 	// Organization (admin only)
-	r.Handle("/api/organization", requireLogin(requireAdmin(http.HandlerFunc(deleteOrganizationHandler)))).Methods("DELETE")
+	r.Delete("/api/organization", requireLogin(requireAdmin(http.HandlerFunc(deleteOrganizationHandler))))
 
 	// Connections
-	r.Handle("/api/connections", requireLogin(http.HandlerFunc(connectionsHandler))).Methods("GET")
+	r.Get("/api/connections", requireLogin(http.HandlerFunc(connectionsHandler)))
 
 	// Users (admin only)
-	r.Handle("/api/users", requireLogin(requireAdmin(http.HandlerFunc(listUsersHandler)))).Methods("GET")
-	r.Handle("/api/users", requireLogin(requireAdmin(http.HandlerFunc(createUserHandler)))).Methods("POST")
-	r.Handle("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteUserHandler)))).Methods("DELETE")
-	r.Handle("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateUserHandler)))).Methods("PUT")
+	r.Get("/api/users", requireLogin(requireAdmin(http.HandlerFunc(listUsersHandler))))
+	r.Post("/api/users", requireLogin(requireAdmin(http.HandlerFunc(createUserHandler))))
+	r.Delete("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(deleteUserHandler))))
+	r.Put("/api/users/{id}", requireLogin(requireAdmin(http.HandlerFunc(updateUserHandler))))
 
 	fmt.Println("Server running on http://0.0.0.0:8888")
 	log.Fatal(http.ListenAndServe(":8888", r))
@@ -612,7 +613,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	db.Exec("DELETE FROM users WHERE id = ?", id)
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -633,7 +634,7 @@ func listUsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	var req struct {
 		Username *string `json:"username,omitempty"`
 		Password *string `json:"password,omitempty"`
@@ -881,8 +882,7 @@ func updateItemHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	orgID, _ := session.Values["org_id"].(int)
 	
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -945,8 +945,7 @@ func toggleItemHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	orgID, _ := session.Values["org_id"].(int)
 	
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -978,8 +977,7 @@ func deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	orgID, _ := session.Values["org_id"].(int)
 	
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -1058,7 +1056,7 @@ func createCategoryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateCategoryHandler(w http.ResponseWriter, r *http.Request) {
-    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+    id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 
     var body struct {
         Name string `json:"name"`
@@ -1086,7 +1084,7 @@ func updateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
-    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+    id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 
     var name string
     err := db.QueryRow("SELECT name FROM categories WHERE id = ?", id).Scan(&name)
@@ -1135,7 +1133,7 @@ func createListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateListHandler(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -1145,7 +1143,7 @@ func updateListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteListHandler(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	db.Exec("DELETE FROM items WHERE list_id = ?", id)
 	db.Exec("DELETE FROM lists WHERE id = ?", id)
 	w.WriteHeader(http.StatusNoContent)

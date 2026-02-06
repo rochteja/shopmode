@@ -1,12 +1,11 @@
 module go-api
 
-go 1.21
+go 1.23
 
 require (
-    github.com/gorilla/mux v1.8.1
-    github.com/mattn/go-sqlite3 v1.14.18
-    golang.org/x/crypto v0.12.0
-    github.com/gorilla/sessions v1.2.1
-    github.com/gorilla/securecookie v1.1.1
-    github.com/gorilla/websocket v1.5.0
+    github.com/go-chi/chi/v5 v5.0.12
+    github.com/gorilla/websocket v1.5.3
+    github.com/gorilla/sessions v1.2.2
+    github.com/mattn/go-sqlite3 v1.14.22
+    golang.org/x/crypto v0.19.0
 )

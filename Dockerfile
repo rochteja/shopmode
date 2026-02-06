@@ -1,8 +1,8 @@
 # Run this first to set dependencies:
-# docker run --rm -v $(pwd):/app -w /app golang:1.21-bookworm go mod tidy
+# docker run --rm -v $(pwd):/app -w /app golang:1.23-bookworm go mod tidy
 
 # ---- Build Stage ----
-FROM golang:1.21-bookworm AS builder
+FROM golang:1.23-bookworm AS builder
 
 WORKDIR /app
 

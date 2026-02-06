@@ -1,7 +1,6 @@
 services:
   shopmode:
     image: shopmode:latest
-    pull_policy: never
     container_name: shopmode
     user: "1001:1001"
     environment:
@@ -13,7 +12,7 @@ services:
       - DEFAULT_ADMIN_USERNAME=admin
       - DEFAULT_ADMIN_PASSWORD=admin
     ports:
-      - "3035:8888"
+      - "8888:8888"
     volumes:
       - shopmode-data:/app/data
     restart: unless-stopped
