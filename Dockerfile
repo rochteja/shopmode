@@ -15,13 +15,13 @@ RUN apt-get update && \
 COPY go.mod go.sum ./
 
 # Download dependencies
-RUN go mod download
+RUN go mod download && go mod verify
 
 # Copy source + templates + static
 COPY . .
 
 # Build binary
-RUN CGO_ENABLED=1 GOOS=linux go build -o api .
+RUN go mod tidy && CGO_ENABLED=1 GOOS=linux go build -o api .
 
 # ---- Runtime Stage ----
 FROM debian:bookworm-slim
