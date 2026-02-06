@@ -3,7 +3,7 @@
 A modern, real-time collaborative shopping list application built with Go and vanilla JavaScript. Perfect for families, roommates, or teams who want to share and sync shopping lists across multiple devices.
 
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
-[![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg)](https://golang.org/)s
+[![Go Version](https://img.shields.io/badge/go-1.23+-00ADD8.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## ✨ Features
@@ -13,7 +13,7 @@ A modern, real-time collaborative shopping list application built with Go and va
 - 🏷️ **Custom Categories** - Organize items by category (Groceries, Produce, Dairy, etc.)
 - ⚡ **Real-time Sync** - WebSocket-based instant updates across all connected devices
 - 📱 **Shopping Mode** - Large, touch-friendly interface optimized for in-store use
-- 💤 **Screen Wake Lock** - Keep your device screen on while shopping
+- 👁️ **Screen Wake Lock** - Keep your device screen on while shopping
 - 🌙 **Dark Theme** - Beautiful, modern UI that's easy on the eyes
 - 📦 **Progressive Web App** - Install on mobile devices for native app-like experience
 - 🔢 **Quantity Tracking** - Track how many of each item you need
@@ -41,18 +41,16 @@ A modern, real-time collaborative shopping list application built with Go and va
 ### Prerequisites
 
 - Docker and Docker Compose (recommended)
-- OR Go 1.21+ for local development
+- OR Go 1.22+ for local development
 
 ### Production Deployment
 
 1. **Create a directory for your app:**
-
 ```bash
 mkdir shop-mode && cd shop-mode
 ```
 
 2. **Create an `.env` file with secure secrets:**
-
 ```bash
 cat > .env << EOF
 SESSION_KEY=$(openssl rand -hex 32)
@@ -63,7 +61,6 @@ EOF
 ```
 
 3. **Create `docker-compose.yml`:**
-
 ```yaml
 version: '3.8'
 
@@ -97,13 +94,11 @@ volumes:
 ```
 
 4. **Start the application:**
-
 ```bash
 docker-compose up -d
 ```
 
 5. **Check your `.env` file for the admin password:**
-
 ```bash
 cat .env | grep ADMIN_PASSWORD
 ```
@@ -115,13 +110,15 @@ cat .env | grep ADMIN_PASSWORD
 ⚠️ **Important:** Change the admin password immediately after first login!
 
 ### Local Development (Without Docker)
-
 ```bash
 # Clone the repository
 git clone https://github.com/rochteja/shopmode.git
 cd shopmode
 
-# Install dependencies
+# Update dependencies
+docker run --rm -v $(pwd):/app -w /app golang:1.23-bookworm go mod tidy
+
+# Or if you have Go installed locally
 go mod download
 
 # Run the application
@@ -135,14 +132,14 @@ Access the app at `http://localhost:8888`
 ### ⚠️ Critical Security Steps
 
 1. **Generate a secure SESSION_KEY:**
-   ```bash
+```bash
    openssl rand -hex 32
-   ```
+```
 
 2. **Use a strong admin password:**
-   ```bash
+```bash
    openssl rand -base64 16
-   ```
+```
 
 3. **Always run behind HTTPS in production** using a reverse proxy (Caddy, Traefik, or nginx)
 
@@ -157,7 +154,6 @@ Access the app at `http://localhost:8888`
 ### Reverse Proxy Examples
 
 #### Caddy (Recommended - Automatic HTTPS)
-
 ```caddy
 shopmode.example.com {
     reverse_proxy localhost:8888
@@ -165,7 +161,6 @@ shopmode.example.com {
 ```
 
 #### nginx
-
 ```nginx
 server {
     listen 443 ssl http2;
@@ -194,7 +189,6 @@ server {
 ```
 
 #### Traefik
-
 ```yaml
 labels:
   - "traefik.enable=true"
@@ -259,17 +253,15 @@ Toggle the lightning bolt (⚡) icon to keep your device screen on while shoppin
 
 ### Data Persistence
 
-All data is stored in SQLite at `/app/data/shopping.db` inside the container.
+All data is stored in SQLite at `/app/data/shopping.db` inside the container with WAL mode enabled for better concurrency.
 
 **Important:** Always mount this directory as a volume to persist data:
-
 ```yaml
 volumes:
   - shopmode-data:/app/data
 ```
 
 Or bind mount to a specific directory:
-
 ```yaml
 volumes:
   - ./data:/app/data
@@ -278,7 +270,6 @@ volumes:
 ## 💾 Backup and Restore
 
 ### Backup
-
 ```bash
 # Create timestamped backup
 docker cp shopping:/app/data/shopping.db ./backup-$(date +%Y%m%d-%H%M%S).db
@@ -288,7 +279,6 @@ docker-compose exec shopping cat /app/data/shopping.db > backup-$(date +%Y%m%d).
 ```
 
 ### Restore
-
 ```bash
 # Stop the container first
 docker-compose down
@@ -303,7 +293,6 @@ docker-compose up -d
 ### Automated Backups
 
 Add to your crontab:
-
 ```bash
 # Daily backup at 2 AM
 0 2 * * * docker cp shopmode:/app/data/shopping.db /backups/shopping-$(date +\%Y\%m\%d).db
@@ -330,11 +319,13 @@ The app will now appear on your home screen like a native app!
 ## 🏗️ Building from Source
 
 ### Build Docker Image
-
 ```bash
 # Clone the repository
 git clone https://github.com/rochteja/shopmode.git
 cd shopmode
+
+# Update dependencies
+docker run --rm -v $(pwd):/app -w /app golang:1.23-bookworm go mod tidy
 
 # Build the image
 docker build -t shopmode:latest .
@@ -349,7 +340,6 @@ docker run -d \
 ```
 
 ### Development Build
-
 ```bash
 # Install dependencies
 go mod download
@@ -364,7 +354,7 @@ CGO_ENABLED=1 go build -o shopmode .
 HTTPS=false SESSION_KEY=dev-secret ./shopmode
 ```
 
-## 🐛 Troubleshooting
+## 🛠 Troubleshooting
 
 ### Can't Login
 
@@ -391,6 +381,7 @@ HTTPS=false SESSION_KEY=dev-secret ./shopmode
 **Issue:** "Database is locked" errors in logs
 
 **Solutions:**
+- WAL mode is now enabled by default for better concurrency
 - Ensure only one container is accessing the database
 - Check volume mount permissions
 - Stop all containers, backup DB, delete volume, restore DB
@@ -445,8 +436,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Built with [Gorilla Mux](https://github.com/gorilla/mux) for routing
+- Built with [Chi Router](https://github.com/go-chi/chi) for lightweight HTTP routing
 - Uses [Gorilla WebSocket](https://github.com/gorilla/websocket) for real-time sync
+- Session management via [Gorilla Sessions](https://github.com/gorilla/sessions)
 - Styled with modern CSS variables and dark theme
 
 ## 📞 Support
