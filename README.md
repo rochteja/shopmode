@@ -3,6 +3,9 @@
 A modern, real-time collaborative shopping list application built with Go and vanilla JavaScript. Perfect for families, roommates, or teams who want to share and sync shopping lists across multiple devices.
 
 [![Docker Image Version](https://img.shields.io/docker/v/rochteja/shopmode?sort=semver)](https://hub.docker.com/r/rochteja/shopmode)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rochteja/shopmode)](https://hub.docker.com/r/rochteja/shopmode)
+[![Docker Image Size](https://img.shields.io/docker/image-size/rochteja/shopmode/latest)](https://hub.docker.com/r/rochteja/shopmode)
+
 [![Go Version](https://img.shields.io/badge/go-1.23+-00ADD8.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
