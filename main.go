@@ -371,29 +371,30 @@ func createTable() {
 	firstRun := db.QueryRow("SELECT value FROM settings WHERE key = 'seeded'").Scan(&seeded) != nil
 
 	if firstRun {
-		defaultOrg := os.Getenv("DEFAULT_ORGANIZATION")
-		defaultList := os.Getenv("DEFAULT_LIST")
-		adminUsername := os.Getenv("DEFAULT_ADMIN_USERNAME")
-		adminPassword := os.Getenv("DEFAULT_ADMIN_PASSWORD")
+	    // Could be a pre-existing database that just lacks the settings table.
+	    // Check if org data already exists before seeding anything.
+	    var orgCount int
+	    db.QueryRow("SELECT COUNT(*) FROM organizations").Scan(&orgCount)
 
-		// Default organization
-		db.Exec("INSERT INTO organizations (name) VALUES (?)", defaultOrg)
+	    if orgCount == 0 {
+	        // Genuinely fresh — seed everything
+	        defaultOrg := os.Getenv("DEFAULT_ORGANIZATION")
+	        defaultList := os.Getenv("DEFAULT_LIST")
+	        adminUsername := os.Getenv("DEFAULT_ADMIN_USERNAME")
+	        adminPassword := os.Getenv("DEFAULT_ADMIN_PASSWORD")
 
-		// Default admin user
-		hash, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-		db.Exec("INSERT INTO users (org_id, username, password_hash, role) VALUES (1, ?, ?, 'Admin')", adminUsername, string(hash))
-		fmt.Printf("Created default admin user: organization/username='%s/%s', password='%s'\n", defaultOrg, adminUsername, adminPassword)
+	        db.Exec("INSERT INTO organizations (name) VALUES (?)", defaultOrg)
+	        hash, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+	        db.Exec("INSERT INTO users (org_id, username, password_hash, role) VALUES (1, ?, ?, 'Admin')", adminUsername, string(hash))
+	        fmt.Printf("Created default admin user: organization/username='%s/%s', password='%s'\n", defaultOrg, adminUsername, adminPassword)
+	        db.Exec("INSERT INTO lists (org_id, name, created_by) VALUES (1, ?, ?)", defaultList, adminUsername)
+	        db.Exec(`INSERT INTO categories (org_id, name) VALUES
+	            (1, 'Groceries'),(1, 'Produce'),(1, 'Dairy'),(1, 'Meat'),
+	            (1, 'Bakery'),(1, 'Household'),(1, 'Other')`)
+	    }
 
-		// Default list
-		db.Exec("INSERT INTO lists (org_id, name, created_by) VALUES (1, ?, ?)", defaultList, adminUsername)
-
-		// Default categories
-		db.Exec(`INSERT INTO categories (org_id, name) VALUES
-			(1, 'Groceries'),(1, 'Produce'),(1, 'Dairy'),(1, 'Meat'),
-			(1, 'Bakery'),(1, 'Household'),(1, 'Other')`)
-
-		// Mark as seeded so rebuilds never re-insert
-		db.Exec("INSERT INTO settings (key, value) VALUES ('seeded', 'true')")
+	    // Mark as seeded regardless — existing or new, we never want to re-evaluate
+	    db.Exec("INSERT INTO settings (key, value) VALUES ('seeded', 'true')")
 	}
 }
 
