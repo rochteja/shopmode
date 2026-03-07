@@ -5,7 +5,7 @@ services:
     user: "1001:1001"
     environment:
       - HTTPS=true
-      - SESSION_KEY=your-random-secret-key-here-change-this
+      - SESSION_KEY=your-random-secret-key-here-change-this-
       - APP_TITLE=Shop Mode
       - DEFAULT_ORGANIZATION=Default
       - DEFAULT_LIST=Shopping
