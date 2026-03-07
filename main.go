@@ -181,7 +181,6 @@ func main() {
 	db.Exec("PRAGMA busy_timeout=5000")
 
 	createTable()
-	createUserTable()
 
 	// Start WebSocket hub
 	go handleBroadcasts()
@@ -300,105 +299,102 @@ func getConnectionCount() int {
 
 // --- TABLES ---
 func createTable() {
-	// Create lists table first
+
+	// ---- Table definitions ----
+
+	db.Exec(`CREATE TABLE IF NOT EXISTS settings (
+		key   TEXT PRIMARY KEY,
+		value TEXT NOT NULL
+	);`)
+
+	db.Exec(`CREATE TABLE IF NOT EXISTS organizations (
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		name       TEXT NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);`)
+
+	db.Exec(`CREATE TABLE IF NOT EXISTS users (
+		id            INTEGER PRIMARY KEY AUTOINCREMENT,
+		org_id        INTEGER NOT NULL DEFAULT 1,
+		username      TEXT NOT NULL,
+		password_hash TEXT NOT NULL,
+		role          TEXT DEFAULT 'user',
+		created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(org_id, username),
+		FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
+	);`)
+
 	db.Exec(`CREATE TABLE IF NOT EXISTS lists (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		org_id INTEGER NOT NULL DEFAULT 1,
-		name TEXT NOT NULL,
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		org_id     INTEGER NOT NULL DEFAULT 1,
+		name       TEXT NOT NULL,
 		created_by TEXT DEFAULT 'Unknown',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
 	);`)
 
-	// Ensure default list exists
-	var listCount int
-	defaultList := os.Getenv("DEFAULT_LIST")
-	adminUsername := os.Getenv("DEFAULT_ADMIN_USERNAME")
-	db.QueryRow("SELECT COUNT(*) FROM lists").Scan(&listCount)
-	if listCount == 0 {
-		db.Exec("INSERT INTO lists (name, created_by) VALUES (?, ?)", defaultList, adminUsername)
-	}
+	db.Exec(`CREATE TABLE IF NOT EXISTS categories (
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		org_id     INTEGER NOT NULL DEFAULT 1,
+		name       TEXT NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(org_id, name),
+		FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
+	);`)
 
-	// Check if items table exists
-	var tableExists int
-	db.QueryRow("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='items'").Scan(&tableExists)
-	
-	if tableExists == 0 {
-		// Fresh install - create with list_id
+	// items: create fresh or migrate legacy table that is missing list_id
+	var itemsExists int
+	db.QueryRow("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='items'").Scan(&itemsExists)
+	if itemsExists == 0 {
 		db.Exec(`CREATE TABLE items (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			list_id INTEGER NOT NULL DEFAULT 1,
-			name TEXT NOT NULL,
-			quantity TEXT DEFAULT '1',
-			category TEXT DEFAULT 'Other',
-			purchased BOOLEAN DEFAULT 0,
-			added_by TEXT DEFAULT 'Unknown',
+			id         INTEGER PRIMARY KEY AUTOINCREMENT,
+			list_id    INTEGER NOT NULL DEFAULT 1,
+			name       TEXT NOT NULL,
+			quantity   TEXT DEFAULT '1',
+			category   TEXT DEFAULT 'Other',
+			purchased  BOOLEAN DEFAULT 0,
+			added_by   TEXT DEFAULT 'Unknown',
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
 		);`)
 	} else {
-		// Migration - check if list_id column exists
 		var colExists int
 		db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('items') WHERE name='list_id'").Scan(&colExists)
-		
 		if colExists == 0 {
-			// Add list_id column to existing table
 			db.Exec("ALTER TABLE items ADD COLUMN list_id INTEGER NOT NULL DEFAULT 1")
 		}
 	}
 
-	// Create organizations table
-	db.Exec(`CREATE TABLE IF NOT EXISTS organizations (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);`)
+	// ---- Seed defaults (once per fresh database) ----
 
-	// Ensure default org exists
-	var orgCount int
-	defaultOrganization := os.Getenv("DEFAULT_ORGANIZATION")
-	db.QueryRow("SELECT COUNT(*) FROM organizations").Scan(&orgCount)
-	if orgCount == 0 {
-		db.Exec("INSERT INTO organizations (name) VALUES (?)", defaultOrganization)
+	var seeded string
+	firstRun := db.QueryRow("SELECT value FROM settings WHERE key = 'seeded'").Scan(&seeded) != nil
+
+	if firstRun {
+		defaultOrg := os.Getenv("DEFAULT_ORGANIZATION")
+		defaultList := os.Getenv("DEFAULT_LIST")
+		adminUsername := os.Getenv("DEFAULT_ADMIN_USERNAME")
+		adminPassword := os.Getenv("DEFAULT_ADMIN_PASSWORD")
+
+		// Default organization
+		db.Exec("INSERT INTO organizations (name) VALUES (?)", defaultOrg)
+
+		// Default admin user
+		hash, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+		db.Exec("INSERT INTO users (org_id, username, password_hash, role) VALUES (1, ?, ?, 'Admin')", adminUsername, string(hash))
+		fmt.Printf("Created default admin user: organization/username='%s/%s', password='%s'\n", defaultOrg, adminUsername, adminPassword)
+
+		// Default list
+		db.Exec("INSERT INTO lists (org_id, name, created_by) VALUES (1, ?, ?)", defaultList, adminUsername)
+
+		// Default categories
+		db.Exec(`INSERT INTO categories (org_id, name) VALUES
+			(1, 'Groceries'),(1, 'Produce'),(1, 'Dairy'),(1, 'Meat'),
+			(1, 'Bakery'),(1, 'Household'),(1, 'Other')`)
+
+		// Mark as seeded so rebuilds never re-insert
+		db.Exec("INSERT INTO settings (key, value) VALUES ('seeded', 'true')")
 	}
-
-	// Create Categories table
-	db.Exec(`CREATE TABLE IF NOT EXISTS categories (
-	    id INTEGER PRIMARY KEY AUTOINCREMENT,
-	    org_id INTEGER NOT NULL DEFAULT 1,
-	    name TEXT NOT NULL,
-	    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-	    UNIQUE(org_id, name),
-	    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
-	);`)
-
-	// Default categories
-	db.Exec(`INSERT OR IGNORE INTO categories (org_id, name) VALUES
-    	(1, 'Groceries'),(1, 'Produce'),(1, 'Dairy'),(1, 'Meat'),(1, 'Bakery'),(1, 'Household'),(1, 'Other');`)
-}
-
-func createUserTable() {
-    db.Exec(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        org_id INTEGER NOT NULL DEFAULT 1,
-        username TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        role TEXT DEFAULT 'user',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(org_id, username),
-        FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
-    );`)
-
-    var count int
-    db.QueryRow("SELECT COUNT(*) FROM users WHERE role = 'Admin'").Scan(&count)
-    if count == 0 {
-		defaultOrganization := os.Getenv("DEFAULT_ORGANIZATION")
-        adminUsername := os.Getenv("DEFAULT_ADMIN_USERNAME")
-        adminPassword := os.Getenv("DEFAULT_ADMIN_PASSWORD")
-        hash, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-        db.Exec("INSERT INTO users (org_id, username, password_hash, role) VALUES (?, ?, ?, ?)", 1, adminUsername, string(hash), "Admin")
-        fmt.Printf("Created default admin user: organization/username='%s/%s', password='%s'\n", defaultOrganization, adminUsername, adminPassword)
-    }
 }
 
 // --- HANDLERS ---
